@@ -29,6 +29,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+PROG_NAME := Snake
+OUT_NAME := snake
+
 #---------------------------------------------------------------------------------
 # Clear the implicit built in rules
 #---------------------------------------------------------------------------------
@@ -63,10 +66,10 @@ INCLUDES	:=
 # options for code and add-in generation
 #---------------------------------------------------------------------------------
 
-MKG3AFLAGS := -n basic:PolySolve -i uns:../unselected.bmp -i sel:../selected.bmp
+MKG3AFLAGS = -n basic:$(PROG_NAME) -i uns:../unselected.bmp -i sel:../selected.bmp
 
-CFLAGS	= -Os -Wall $(MACHDEP) $(INCLUDE) -ffunction-sections -fdata-sections
-CXXFLAGS	=	$(CFLAGS)
+CFLAGS   = -Os -Wall -Werror=vla $(MACHDEP) $(INCLUDE) -ffunction-sections -fdata-sections
+CXXFLAGS = $(CFLAGS)
 
 LDFLAGS	= $(MACHDEP) -T$(FXCGSDK)/toolchain/prizm.x -Wl,-static -Wl,-gc-sections
 
@@ -158,7 +161,7 @@ CLFILE	:=	CLPATH.txt
 CLPATH	:=	$(file < $(CLFILE))
 
 debug:
-	gcc -o polysolve $(CURDIR)/src/main.c -I $(CLPATH)/include \
+	gcc -o $(OUT_NAME) $(CURDIR)/src/main.c -I $(CLPATH)/include \
 	-L $(CLPATH)/build -lfx-cg-cl -nostdinc -Dmain=fxcg_main
 
 #---------------------------------------------------------------------------------

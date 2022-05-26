@@ -5,3 +5,6 @@ AllowShortIfStatementsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: false
 IndentCaseLabels: false
 ColumnLimit: 0
+IncludeCategories:
+  - Regex: \<(.*)\>
+    Priority: 0
