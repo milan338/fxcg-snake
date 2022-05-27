@@ -2,7 +2,6 @@
 # Original license: licenses/BSD-3-Clause
 
 PROG_NAME := Snake
-OUT_NAME := snake
 
 #---------------------------------------------------------------------------------
 # Clear the implicit built in rules
@@ -40,7 +39,7 @@ INCLUDES	:=
 
 MKG3AFLAGS = -n basic:$(PROG_NAME) -i uns:../unselected.bmp -i sel:../selected.bmp
 
-CFLAGS   = -Os -Wall -Werror=vla $(MACHDEP) $(INCLUDE) -ffunction-sections -fdata-sections
+CFLAGS   = -Os -Wall -Werror=vla -flto $(MACHDEP) $(INCLUDE) -ffunction-sections -fdata-sections
 CXXFLAGS = $(CFLAGS)
 
 LDFLAGS	= $(MACHDEP) -T$(FXCGSDK)/toolchain/prizm.x -Wl,-static -Wl,-gc-sections
@@ -131,8 +130,14 @@ clean:
 CLFILE	:=	CLPATH.txt
 CLPATH	:=	$(file < $(CLFILE))
 
+lc = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f, \
+     $(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l, \
+     $(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r, \
+     $(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x, \
+     $(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
+
 debug:
-	gcc -o $(OUT_NAME) $(CURDIR)/src/main.c -I $(CLPATH)/include \
+	gcc $(call lc,$(PROG_NAME)) $(CURDIR)/src/main.c -I $(CLPATH)/include \
 	-L $(CLPATH)/build -lfx-cg-cl -nostdinc -Dmain=fxcg_main
 
 #---------------------------------------------------------------------------------
