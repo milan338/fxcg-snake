@@ -7,41 +7,35 @@
 #include "../util/keyboard.h"
 #include "view_game.h"
 
-// TODO store direction
-
 static iVec2 snake[N_BLOCKS] = {[0 ... N_BLOCKS - 1] = {EMPTY_COORD, EMPTY_COORD}};
-static iVec2 dir = {1, 0};
+static iVec2 head = {EMPTY_COORD, EMPTY_COORD};
 static iVec2 apple = {EMPTY_COORD, EMPTY_COORD};
+static iVec2 dir = {1, 0};
 static unsigned int snake_size = 0;
-
-// static inline void draw_snake_block(int i, color_t color)
-// {
-//     x1 = GRID_X1 + snake[i].x * BLOCK_SIZE;
-//     x2 = x1 + BLOCK_SIZE - 1;
-//     y1 = GRID_Y1 + snake[i].y * BLOCK_SIZE;
-//     y2 = y1 + BLOCK_SIZE - 1;
-//     draw_rect(x1, x2, y1, y2, color);
-// }
 
 bool is_intersecting(void)
 {
-    const iVec2 head = snake[snake_size - 1];
+    head = snake[snake_size - 1];
     // Check for playfield bounds intersections
     if (__builtin_expect(head.x >= GRID_W || head.x <= 0 || head.y >= GRID_H || head.y <= 0, false))
         return true;
     // Check for snake body intersection
     for (int i = 0; i < snake_size - 1; i++)
     {
-        if (__builtin_expect(snake[i].x == head.x || snake[i].y == head.y, false))
+        if (__builtin_expect(snake[i].x == head.x && snake[i].y == head.y, false))
             return true;
     }
     return false;
 }
 
-void draw_game(void)
+bool draw_game(void)
 {
-    // Update status display
-    DisplayStatusArea();
+    // Game over
+    if (__builtin_expect(is_intersecting(), false))
+    {
+        int key = draw_msg_box(5, "  Game Over", STR_UNUSED, STR_UNUSED, STR_UNUSED, "  Press: [EXIT]");
+        return true;
+    }
     // Draw background
     draw_rect(0, SCREEN_W, OFFSET_TOP, SCREEN_H, COLOR_BLACK);
     // Draw snake body and head
@@ -51,12 +45,11 @@ void draw_game(void)
     draw_block(snake[i].x, snake[i].y, COLOR_WHITE);
     // Draw apple
     draw_block(apple.x, apple.y, COLOR_RED);
-    // Game over
-    if (__builtin_expect(is_intersecting(), false))
-    {
-    }
+    // Update status display
+    DisplayStatusArea();
     // Push modified VRAM to screen
     update_view();
+    return false;
 }
 
 void view_game(void)
@@ -65,6 +58,7 @@ void view_game(void)
     setup_view();
     int last_ticks = RTC_GetTicks();
     int delay_ms = 1000;
+    bool game_over = false;
 
     snake[0] = (iVec2){5, 5};
     snake[1] = (iVec2){6, 5};
@@ -103,12 +97,19 @@ void view_game(void)
                 snake[i].x++;
             }
 
-            draw_game();
+            game_over = draw_game();
+            if (game_over)
+                return;
         }
         // ! Temporary for work on emulator
         int key = PRGM_GetKey();
         switch (key)
         {
+        case 47: // EXIT
+            key = draw_msg_box(5, "  Game Paused", STR_UNUSED, STR_UNUSED, "  Resume: [F1]", "  Quit: [F2]");
+            if (key == KEY_CTRL_F2)
+                return;
+            break;
         case 79:
             break;
         case 48:

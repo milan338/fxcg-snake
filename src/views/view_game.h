@@ -22,6 +22,8 @@
 
 #define EMPTY_COORD 255
 
+#define STR_UNUSED "  "
+
 void view_game(void);
 
 #endif // VIEW_GAME_H

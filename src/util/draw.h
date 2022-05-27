@@ -38,10 +38,12 @@ void update_view(void); // GetKey already calls this
 void draw_fkey_label(int fkey, int bitmap);
 void draw_fkey_labels(size_t size, const Fkey *fkeys);
 
+int draw_msg_box(int n_lines, ...);
+
 void draw_point(int x, int y, color_t color);
 void draw_rect(int x1, int x2, int y1, int y2, color_t color);
 // Draw point in playfield to screen
-static unsigned int x1, x2, y1, y2;
+static int x1, x2, y1, y2;
 static inline void draw_block(unsigned char x, unsigned char y, color_t color)
 {
     x1 = GRID_X1 + x * BLOCK_SIZE;
