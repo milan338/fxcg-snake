@@ -1,4 +1,6 @@
 #include <fxcg/display.h>
+#include <fxcg/keyboard.h>
+#include <stdarg.h>
 #include <string.h>
 #include "draw.h"
 
@@ -32,6 +34,24 @@ void draw_fkey_labels(size_t size, const Fkey *fkeys)
 {
     for (size_t i = 0; i < size; i++)
         draw_fkey_label(fkeys[i].fkey, fkeys[i].bitmap);
+}
+
+int draw_msg_box(int n_lines, ...)
+{
+    va_list args;
+    MsgBoxPush(5);
+    va_start(args, n_lines);
+    char *msg;
+    for (int i = 0; i < n_lines; i++)
+    {
+        msg = va_arg(args, char *);
+        PrintXY(3, i + 2, msg, TEXT_MODE_TRANSPARENT_BACKGROUND, TEXT_COLOR_BLACK);
+    }
+    va_end(args);
+    int key;
+    GetKey(&key);
+    MsgBoxPop();
+    return key;
 }
 
 void draw_point(int x, int y, color_t color)
