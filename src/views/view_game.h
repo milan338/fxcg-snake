@@ -24,6 +24,11 @@
 
 #define STR_UNUSED "  "
 
+#define CHANGE_DIR(X, Y)                      \
+    force_update = change_dir(X, Y);          \
+    if (__builtin_expect(force_update, true)) \
+        goto game_loop_update;
+
 void view_game(void);
 
 #endif // VIEW_GAME_H

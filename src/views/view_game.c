@@ -7,9 +7,9 @@
 #include "../util/keyboard.h"
 #include "view_game.h"
 
-static iVec2 snake[N_BLOCKS] = {[0 ... N_BLOCKS - 1] = {EMPTY_COORD, EMPTY_COORD}};
-static iVec2 head = {EMPTY_COORD, EMPTY_COORD};
-static iVec2 apple = {EMPTY_COORD, EMPTY_COORD};
+static uiVec2 snake[N_BLOCKS] = {[0 ... N_BLOCKS - 1] = {EMPTY_COORD, EMPTY_COORD}};
+static uiVec2 head = {EMPTY_COORD, EMPTY_COORD};
+static uiVec2 apple = {EMPTY_COORD, EMPTY_COORD};
 static iVec2 dir = {1, 0};
 static unsigned int snake_size = 0;
 
@@ -28,14 +28,38 @@ bool is_intersecting(void)
     return false;
 }
 
-bool draw_game(void)
+bool change_dir(int8_t x, int8_t y)
 {
-    // Game over
-    if (__builtin_expect(is_intersecting(), false))
+    // Ignore when new dir same as current
+    if (dir.x == x && dir.y == y)
+        return false;
+    // Don't move back into body
+    unsigned int head_i = snake_size - 1;
+    unsigned int neck_i = snake_size - 2;
+    if (__builtin_expect(
+            snake[head_i].x + x == snake[neck_i].x && snake[head_i].y + y == snake[neck_i].y,
+            false))
+        return false;
+    dir.x = x;
+    dir.y = y;
+    return true;
+}
+
+void move_snake(void)
+{
+    // Move each ith body part to the position of the i+1th
+    for (int i = 0; i < snake_size - 1; i++)
     {
-        int key = draw_msg_box(5, "  Game Over", STR_UNUSED, STR_UNUSED, STR_UNUSED, "  Press: [EXIT]");
-        return true;
+        snake[i].x = snake[i + 1].x;
+        snake[i].y = snake[i + 1].y;
     }
+    // Move head
+    snake[snake_size - 1].x += dir.x;
+    snake[snake_size - 1].y += dir.y;
+}
+
+void draw_game(void)
+{
     // Draw background
     draw_rect(0, SCREEN_W, OFFSET_TOP, SCREEN_H, COLOR_BLACK);
     // Draw snake body and head
@@ -49,7 +73,6 @@ bool draw_game(void)
     DisplayStatusArea();
     // Push modified VRAM to screen
     update_view();
-    return false;
 }
 
 void view_game(void)
@@ -58,15 +81,17 @@ void view_game(void)
     setup_view();
     int last_ticks = RTC_GetTicks();
     int delay_ms = 1000;
-    bool game_over = false;
 
-    snake[0] = (iVec2){5, 5};
-    snake[1] = (iVec2){6, 5};
+    snake[0] = (uiVec2){5, 5};
+    snake[1] = (uiVec2){6, 5};
     snake_size = 2;
     // snake[1] = {5, 6};
 
     draw_game();
     int a = 0;
+
+    bool force_update;
+
     // Game loop
     while (1)
     {
@@ -90,16 +115,16 @@ void view_game(void)
         // Game loop - under non-blocking delay
         if (RTC_Elapsed_ms(last_ticks, delay_ms))
         {
+        game_loop_update:
             last_ticks = RTC_GetTicks();
-
-            for (int i = 0; i < snake_size; i++)
+            move_snake();
+            // Game over
+            if (__builtin_expect(is_intersecting(), false))
             {
-                snake[i].x++;
-            }
-
-            game_over = draw_game();
-            if (game_over)
+                draw_msg_box(5, "  Game Over", STR_UNUSED, STR_UNUSED, STR_UNUSED, "  Press: [EXIT]");
                 return;
+            }
+            draw_game();
         }
         // ! Temporary for work on emulator
         int key = PRGM_GetKey();
@@ -110,7 +135,17 @@ void view_game(void)
             if (key == KEY_CTRL_F2)
                 return;
             break;
-        case 79:
+        case 38: // LEFT
+            CHANGE_DIR(-1, 0)
+            break;
+        case 37: // DOWN
+            CHANGE_DIR(0, 1)
+            break;
+        case 28: // UP
+            CHANGE_DIR(0, -1)
+            break;
+        case 27: // RIGHT
+            CHANGE_DIR(1, 0)
             break;
         case 48:
             GetKey(&key);
