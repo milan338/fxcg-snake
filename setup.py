@@ -4,15 +4,19 @@ from tkinter import filedialog
 from os import makedirs
 from os.path import abspath, join
 
-# Instrunctions
+################################################################################
+#            Run this file and select your libfxcg directory                   #
+################################################################################
+
+# Libfxcg instruction:
 # Windows: https://github.com/Jonimoose/libfxcg/blob/master/docs/howto-windows.md
 
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 GEN_VSCODE_C_CPP_PROPERTIES = True
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 GEN_FX_CG_CL = False
 # https://gitlab.com/taricorp/fx-cg-cl/ # https://gitlab.com/taricorp/fx-cg-ui #
-# ------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------- #
 
 
 def getDir(title):
@@ -62,11 +66,14 @@ if GEN_VSCODE_C_CPP_PROPERTIES:
             'cppStandard': 'c++11',
             'compilerPath': compiler_path,
             'compilerArgs': [
+                '-Os'
                 '-MMD',
                 '-MP',
                 '-MF',
                 '-ffunction-sections',
-                '-fdata-sections'
+                '-fdata-sections',
+                '-Wall',
+                '-Werror=vla'
             ]}],
         'version': 4}
     with open(c_cpp_properties_path, 'w') as file:
