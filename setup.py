@@ -4,6 +4,7 @@ from tkinter import filedialog
 from os import makedirs
 from os.path import abspath, join
 
+
 ################################################################################
 #            Run this file and select your libfxcg directory                   #
 ################################################################################
@@ -56,6 +57,7 @@ if GEN_VSCODE_C_CPP_PROPERTIES:
     c_cpp_properties = {
         'configurations': [{
             'name': 'libfxcg',
+            'intelliSenseMode': 'gcc-arm',
             'includePath': [
                 include_path],
             'browse': {
@@ -67,13 +69,19 @@ if GEN_VSCODE_C_CPP_PROPERTIES:
             'compilerPath': compiler_path,
             'compilerArgs': [
                 '-Os'
+                '-Wall',
+                '-flto',
                 '-MMD',
                 '-MP',
                 '-MF',
+                '-mb',
+                '-m4a-nofpu',
+                '-m4a-nofpu',
+                '-mhitachi',
                 '-ffunction-sections',
                 '-fdata-sections',
-                '-Wall',
-                '-Werror=vla'
+                '-Werror=vla',
+                '-nostdlib'
             ]}],
         'version': 4}
     with open(c_cpp_properties_path, 'w') as file:
