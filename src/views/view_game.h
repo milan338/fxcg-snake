@@ -24,9 +24,8 @@
 
 #define STR_UNUSED "  "
 
-#define CHANGE_DIR(X, Y)                      \
-    force_update = change_dir(X, Y);          \
-    if (__builtin_expect(force_update, true)) \
+#define CHANGE_DIR(X, Y)                                                 \
+    if (__builtin_expect_with_probability(change_dir(X, Y), true, 0.75)) \
         goto game_loop_update;
 
 void view_game(void);
