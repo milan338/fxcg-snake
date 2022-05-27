@@ -2,6 +2,7 @@
 #define UTIL_DRAW_H
 
 #include <stddef.h>
+#include "../types.h"
 #include "../views/view_game.h"
 
 #define OFFSET_TOP 24
@@ -44,7 +45,7 @@ void draw_point(int x, int y, color_t color);
 void draw_rect(int x1, int x2, int y1, int y2, color_t color);
 // Draw point in playfield to screen
 static int x1, x2, y1, y2;
-static inline void draw_block(unsigned char x, unsigned char y, color_t color)
+static inline void draw_block(uint8_t x, uint8_t y, color_t color)
 {
     x1 = GRID_X1 + x * BLOCK_SIZE;
     x2 = x1 + BLOCK_SIZE - 1;
