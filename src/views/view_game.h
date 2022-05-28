@@ -28,6 +28,7 @@
     if (__builtin_expect_with_probability(change_dir(X, Y), true, 0.75)) \
         goto game_loop_update;
 
+void set_delay_ms(int delay);
 void view_game(void);
 
 #endif // VIEW_GAME_H
