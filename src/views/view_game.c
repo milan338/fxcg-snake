@@ -8,11 +8,11 @@
 #include "../util/rand.h"
 #include "view_game.h"
 
-static int *_delay_ms;
+static int _delay_ms;
 
 void set_delay_ms(int delay)
 {
-    *_delay_ms = delay;
+    _delay_ms = delay;
 }
 
 bool is_intersecting(uiVec2 *snake, unsigned int snake_size)
@@ -109,14 +109,15 @@ void view_game(void)
     // Clear frame
     setup_view();
     // Init variables
+    static unsigned short last_key[8];
+    static unsigned short hold_key[8];
     static const iVec2 dir_left = {-1, 0};
     static const iVec2 dir_right = {1, 0};
     static const iVec2 dir_up = {0, -1};
     static const iVec2 dir_down = {0, 1};
-    static int delay_ms = 500;
     unsigned int snake_size = 2;
     int last_ticks = RTC_GetTicks();
-    _delay_ms = &delay_ms;
+    int delay_ms = _delay_ms;
     uiVec2 snake[N_BLOCKS] = {[0 ... N_BLOCKS - 1] = {EMPTY_COORD, EMPTY_COORD}};
     uiVec2 apple = {EMPTY_COORD, EMPTY_COORD};
     uiVec2 last_tail = {EMPTY_COORD, EMPTY_COORD};
@@ -130,9 +131,10 @@ void view_game(void)
     // Game loop
     while (1)
     {
-
         // TODO use this for actual hardware
         // Update key arrays
+        // key_update(last_key, hold_key);
+
         // key_update();
         // if (is_key_down(KEY_CTRL_F2))
         // {
@@ -146,7 +148,6 @@ void view_game(void)
         //     // Let OS handle menu key
         //     GetKey(&key);
         // }
-
         // Game loop - under non-blocking delay
         if (RTC_Elapsed_ms(last_ticks, delay_ms))
         {

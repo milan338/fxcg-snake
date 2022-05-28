@@ -8,6 +8,7 @@ int main(void)
     // Use 3-bit color mode
     Bdisp_EnableColor(0);
     update_vram_addr();
+    update_status_area();
     // Begin main window loop
     view_home();
     return 0;
