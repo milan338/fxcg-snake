@@ -56,11 +56,13 @@ int draw_msg_box(int n_lines, ...)
 
 void draw_point(int x, int y, color_t color)
 {
+    __builtin_prefetch(&vram, 0, 3);
     *pixel_at(x, y) = color;
 }
 
 void draw_rect(int x1, int x2, int y1, int y2, color_t color)
 {
+    __builtin_prefetch(&vram, 0, 3);
     for (int x = x1; x < x2; x++)
     {
         for (int y = y1; y < y2; y++)
