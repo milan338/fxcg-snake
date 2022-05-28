@@ -18,7 +18,7 @@ const char *get_speed_name(int *len)
     return speeds[idelay];
 }
 
-void update_delay_ms()
+void update_delay_ms(void)
 {
     _delay_ms = delays[idelay];
 }
