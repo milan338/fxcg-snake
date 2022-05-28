@@ -8,13 +8,6 @@
 #include "../util/rand.h"
 #include "view_game.h"
 
-static int _delay_ms;
-
-void set_delay_ms(int delay)
-{
-    _delay_ms = delay;
-}
-
 bool is_intersecting(uiVec2 *snake, unsigned int snake_size)
 {
     // Check for playfield bounds intersections

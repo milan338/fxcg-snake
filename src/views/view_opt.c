@@ -10,12 +10,17 @@ const int delays[] = {2000, 1000, 750, 500, 250, 100, 50};
 const char *speeds[] = {"Really Slow", "Slow", "Leisurely", "Medium", "Fast", "Really Fast", "Too Fast"};
 const int speed_lens[] = {12, 5, 10, 7, 5, 12, 9};
 const size_t n_delays = sizeof(delays) / sizeof(delays[0]);
-int idelay = 3;
+int idelay = 4;
 
 const char *get_speed_name(int *len)
 {
     *len = speed_lens[idelay] + 1;
     return speeds[idelay];
+}
+
+void update_delay_ms()
+{
+    _delay_ms = delays[idelay];
 }
 
 void draw_opt(void)
@@ -43,7 +48,7 @@ void view_opt(void)
     {
         draw_opt();
         // Update actual game delay
-        set_delay_ms(delays[idelay]);
+        update_delay_ms();
         GetKey(&key);
         switch (key)
         {
