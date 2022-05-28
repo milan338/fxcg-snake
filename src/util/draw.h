@@ -44,13 +44,12 @@ int draw_msg_box(int n_lines, ...);
 void draw_point(int x, int y, color_t color);
 void draw_rect(int x1, int x2, int y1, int y2, color_t color);
 // Draw point in playfield to screen
-static int x1, x2, y1, y2;
 static inline void draw_block(uint8_t x, uint8_t y, color_t color)
 {
-    x1 = GRID_X1 + x * BLOCK_SIZE;
-    x2 = x1 + BLOCK_SIZE - 1;
-    y1 = GRID_Y1 + y * BLOCK_SIZE;
-    y2 = y1 + BLOCK_SIZE - 1;
+    int x1 = GRID_X1 + x * BLOCK_SIZE;
+    int x2 = x1 + BLOCK_SIZE - 1;
+    int y1 = GRID_Y1 + y * BLOCK_SIZE;
+    int y2 = y1 + BLOCK_SIZE - 1;
     draw_rect(x1, x2, y1, y2, color);
 }
 

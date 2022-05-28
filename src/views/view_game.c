@@ -8,19 +8,14 @@
 #include "../util/rand.h"
 #include "view_game.h"
 
-static uiVec2 snake[N_BLOCKS];
-static uiVec2 apple;
-static uiVec2 last_tail;
-static iVec2 dir;
-static unsigned int snake_size;
-static int delay_ms = 500;
+static int *_delay_ms;
 
 void set_delay_ms(int delay)
 {
-    delay_ms = delay;
+    *_delay_ms = delay;
 }
 
-bool is_intersecting(void)
+bool is_intersecting(uiVec2 *snake, unsigned int snake_size)
 {
     // Check for playfield bounds intersections
     if (__builtin_expect(
@@ -36,50 +31,51 @@ bool is_intersecting(void)
     return false;
 }
 
-bool change_dir(int8_t x, int8_t y)
+static inline bool change_dir(const iVec2 *new_dir, iVec2 *dir, uiVec2 *snake, unsigned int snake_size)
 {
     // Ignore when new dir same as current
-    if (dir.x == x && dir.y == y)
+    if (__builtin_expect_with_probability(dir->x == new_dir->x && dir->y == new_dir->y, false, 0.75))
         return false;
     // Don't move back into body
     if (__builtin_expect_with_probability(
-            snake[0].x + x == snake[snake_size - 1].x && snake[0].y + y == snake[snake_size - 1].y,
+            snake[0].x + new_dir->x == snake[snake_size - 1].x &&
+                snake[0].y + new_dir->y == snake[snake_size - 1].y,
             false, 0.75))
         return false;
-    dir.x = x;
-    dir.y = y;
+    dir->x = new_dir->x;
+    dir->y = new_dir->y;
     return true;
 }
 
-static inline void spawn_apple(void)
+static inline void spawn_apple(uiVec2 *snake, uiVec2 *apple, unsigned int snake_size)
 {
     bool invalid;
     do
     {
         invalid = false;
-        apple.x = rand() % GRID_W;
-        apple.y = rand() % GRID_H;
+        apple->x = rand() % GRID_W;
+        apple->y = rand() % GRID_H;
         for (int i = 0; i < snake_size; i++)
-            if (apple.x == snake[i].x && apple.y == snake[i].y)
+            if (apple->x == snake[i].x && apple->y == snake[i].y)
                 invalid = true;
     } while (invalid);
 }
 
-void grow_snake(void)
+static inline void grow_snake(uiVec2 *snake, uiVec2 *apple, const uiVec2 *last_tail, unsigned int *snake_size)
 {
     // Win condition checked prior - won't cause out-of-bounds write
-    snake[snake_size].x = last_tail.x;
-    snake[snake_size].y = last_tail.y;
-    snake_size++;
+    snake[*snake_size].x = last_tail->x;
+    snake[*snake_size].y = last_tail->y;
+    (*snake_size)++;
     // Respawn apple
-    spawn_apple();
+    spawn_apple(snake, apple, *snake_size);
 }
 
-void move_snake(void)
+void move_snake(uiVec2 *snake, uiVec2 *last_tail, const iVec2 *dir, unsigned int snake_size)
 {
     // Store current position of tail to use as the new tail when growing
-    last_tail.x = snake[snake_size - 1].x;
-    last_tail.y = snake[snake_size - 1].y;
+    last_tail->x = snake[snake_size - 1].x;
+    last_tail->y = snake[snake_size - 1].y;
     // Move each ith body part to the position of the i-1th
     for (int i = snake_size - 1; i > 0; i--)
     {
@@ -87,11 +83,11 @@ void move_snake(void)
         snake[i].y = snake[i - 1].y;
     }
     // Move head
-    snake[0].x += dir.x;
-    snake[0].y += dir.y;
+    snake[0].x += dir->x;
+    snake[0].y += dir->y;
 }
 
-void draw_game(void)
+void draw_game(const uiVec2 *snake, const uiVec2 *apple, unsigned int snake_size)
 {
     // Draw background
     draw_rect(0, SCREEN_W, OFFSET_TOP, SCREEN_H, COLOR_BLACK);
@@ -101,7 +97,7 @@ void draw_game(void)
         draw_block(snake[i].x, snake[i].y, COLOR_GREEN);
     draw_block(snake[i].x, snake[i].y, COLOR_WHITE);
     // Draw apple
-    draw_block(apple.x, apple.y, COLOR_RED);
+    draw_block(apple->x, apple->y, COLOR_RED);
     // Update status display
     DisplayStatusArea();
     // Push modified VRAM to screen
@@ -113,20 +109,24 @@ void view_game(void)
     // Clear frame
     setup_view();
     // Init variables
+    static const iVec2 dir_left = {-1, 0};
+    static const iVec2 dir_right = {1, 0};
+    static const iVec2 dir_up = {0, -1};
+    static const iVec2 dir_down = {0, 1};
+    static int delay_ms = 500;
+    unsigned int snake_size = 2;
     int last_ticks = RTC_GetTicks();
-    dir.x = 1;
-    dir.y = 0;
-    apple.x = apple.y = EMPTY_COORD;
-    last_tail.x = last_tail.y = EMPTY_COORD;
-    for (int i = 2; i < N_BLOCKS; i++)
-        snake[i].x = snake[i].y = EMPTY_COORD;
+    _delay_ms = &delay_ms;
+    uiVec2 snake[N_BLOCKS] = {[0 ... N_BLOCKS - 1] = {EMPTY_COORD, EMPTY_COORD}};
+    uiVec2 apple = {EMPTY_COORD, EMPTY_COORD};
+    uiVec2 last_tail = {EMPTY_COORD, EMPTY_COORD};
+    iVec2 dir = {1, 0};
     snake[0] = (uiVec2){9, 5};
     snake[1] = (uiVec2){8, 5};
-    snake_size = 2;
     srand(last_ticks);
     // Draw initial frame
-    spawn_apple();
-    draw_game();
+    spawn_apple(snake, &apple, snake_size);
+    draw_game(snake, &apple, snake_size);
     // Game loop
     while (1)
     {
@@ -152,9 +152,9 @@ void view_game(void)
         {
         game_loop_update:
             last_ticks = RTC_GetTicks();
-            move_snake();
+            move_snake(snake, &last_tail, &dir, snake_size);
             // Game over
-            if (__builtin_expect(is_intersecting(), false))
+            if (__builtin_expect(is_intersecting(snake, snake_size), false))
             {
                 draw_msg_box(5, "  Game Over", STR_UNUSED, STR_UNUSED, STR_UNUSED, "  Press: [EXIT]");
                 return;
@@ -169,9 +169,9 @@ void view_game(void)
                     return;
                 }
                 // Didn't win, keep playing
-                grow_snake();
+                grow_snake(snake, &apple, &last_tail, &snake_size);
             }
-            draw_game();
+            draw_game(snake, &apple, snake_size);
         }
         // ! Temporary for work on emulator
         int key = PRGM_GetKey();
@@ -183,16 +183,16 @@ void view_game(void)
                 return;
             break;
         case 38: // LEFT
-            CHANGE_DIR(-1, 0)
+            CHANGE_DIR(&dir_left, &dir, snake, snake_size)
             break;
         case 37: // DOWN
-            CHANGE_DIR(0, 1)
+            CHANGE_DIR(&dir_down, &dir, snake, snake_size)
             break;
         case 28: // UP
-            CHANGE_DIR(0, -1)
+            CHANGE_DIR(&dir_up, &dir, snake, snake_size)
             break;
         case 27: // RIGHT
-            CHANGE_DIR(1, 0)
+            CHANGE_DIR(&dir_right, &dir, snake, snake_size)
             break;
         case 48:
             GetKey(&key);
