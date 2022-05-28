@@ -13,8 +13,12 @@ static uiVec2 apple;
 static uiVec2 last_tail;
 static iVec2 dir;
 static unsigned int snake_size;
+static int delay_ms = 500;
 
-// TODO first time losing doesn't show game over screen
+void set_delay_ms(int delay)
+{
+    delay_ms = delay;
+}
 
 bool is_intersecting(void)
 {
@@ -110,15 +114,14 @@ void view_game(void)
     setup_view();
     // Init variables
     int last_ticks = RTC_GetTicks();
-    int delay_ms = 1000;
     dir.x = 1;
     dir.y = 0;
     apple.x = apple.y = EMPTY_COORD;
     last_tail.x = last_tail.y = EMPTY_COORD;
     for (int i = 2; i < N_BLOCKS; i++)
         snake[i].x = snake[i].y = EMPTY_COORD;
-    snake[0] = (uiVec2){6, 5};
-    snake[1] = (uiVec2){5, 5};
+    snake[0] = (uiVec2){9, 5};
+    snake[1] = (uiVec2){8, 5};
     snake_size = 2;
     srand(last_ticks);
     // Draw initial frame
