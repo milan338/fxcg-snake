@@ -24,10 +24,6 @@
 
 #define STR_UNUSED "  "
 
-#define CHANGE_DIR(NEW_DIR, DIR, SNAKE, SNAKE_SIZE)                                                 \
-    if (__builtin_expect_with_probability(change_dir(NEW_DIR, DIR, SNAKE, SNAKE_SIZE), true, 0.75)) \
-        goto game_loop_update;
-
 extern int _delay_ms;
 
 void view_game(void);
