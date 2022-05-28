@@ -63,7 +63,10 @@ int draw_msg_box(int n_lines, ...)
     }
     va_end(args);
     int key;
-    GetKey(&key);
+    do
+    {
+        GetKey(&key);
+    } while (key != KEY_CTRL_EXIT);
     MsgBoxPop();
     return key;
 }
