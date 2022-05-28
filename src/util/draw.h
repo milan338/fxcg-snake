@@ -40,7 +40,7 @@ void draw_fkey_labels(size_t size, const Fkey *fkeys);
 
 void update_status_area(void);
 
-int draw_msg_box(int n_lines, ...);
+int draw_msg_box(int n_lines, const int *keys, int n_keys, ...);
 
 void draw_rect(int x1, int x2, int y1, int y2, color_t color);
 // Draw point in playfield to screen
