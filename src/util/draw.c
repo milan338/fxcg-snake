@@ -50,11 +50,11 @@ void draw_fkey_labels(size_t size, const Fkey *fkeys)
         draw_fkey_label(fkeys[i].fkey, fkeys[i].bitmap);
 }
 
-int draw_msg_box(int n_lines, ...)
+int draw_msg_box(int n_lines, const int *keys, int n_keys, ...)
 {
     va_list args;
     MsgBoxPush(5);
-    va_start(args, n_lines);
+    va_start(args, n_keys);
     char *msg;
     for (int i = 0; i < n_lines; i++)
     {
@@ -63,10 +63,14 @@ int draw_msg_box(int n_lines, ...)
     }
     va_end(args);
     int key;
-    do
+    while (1)
     {
         GetKey(&key);
-    } while (key != KEY_CTRL_EXIT);
+        for (int i = 0; i < n_keys; i++)
+            if (key == keys[i])
+                goto pop_msg_box;
+    }
+pop_msg_box:
     MsgBoxPop();
     return key;
 }

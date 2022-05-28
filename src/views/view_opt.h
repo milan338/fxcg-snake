@@ -3,7 +3,7 @@
 
 const char *get_speed_name(int *len);
 
-void update_delay_ms();
+void update_delay_ms(void);
 
 void view_opt(void);
 

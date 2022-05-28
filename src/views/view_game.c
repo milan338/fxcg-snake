@@ -24,20 +24,19 @@ bool is_intersecting(uiVec2 *snake, unsigned int snake_size)
     return false;
 }
 
-static inline bool change_dir(const iVec2 *new_dir, iVec2 *dir, uiVec2 *snake, unsigned int snake_size)
+static inline void change_dir(const iVec2 *new_dir, iVec2 *dir, uiVec2 *snake, unsigned int snake_size)
 {
     // Ignore when new dir same as current
     if (__builtin_expect_with_probability(dir->x == new_dir->x && dir->y == new_dir->y, false, 0.75))
-        return false;
+        return;
     // Don't move back into body
     if (__builtin_expect_with_probability(
             snake[0].x + new_dir->x == snake[snake_size - 1].x &&
                 snake[0].y + new_dir->y == snake[snake_size - 1].y,
             false, 0.75))
-        return false;
+        return;
     dir->x = new_dir->x;
     dir->y = new_dir->y;
-    return true;
 }
 
 static inline void spawn_apple(uiVec2 *snake, uiVec2 *apple, unsigned int snake_size)
@@ -108,9 +107,12 @@ void view_game(void)
     static const iVec2 dir_right = {1, 0};
     static const iVec2 dir_up = {0, -1};
     static const iVec2 dir_down = {0, 1};
+    static const int pause_keys[] = {KEY_CTRL_F1, KEY_CTRL_F2, KEY_CTRL_EXIT};
+    static const int game_end_keys[] = {KEY_CTRL_EXIT};
     unsigned int snake_size = 2;
     int last_ticks = RTC_GetTicks();
     int delay_ms = _delay_ms;
+    int key;
     uiVec2 snake[N_BLOCKS] = {[0 ... N_BLOCKS - 1] = {EMPTY_COORD, EMPTY_COORD}};
     uiVec2 apple = {EMPTY_COORD, EMPTY_COORD};
     uiVec2 last_tail = {EMPTY_COORD, EMPTY_COORD};
@@ -124,33 +126,39 @@ void view_game(void)
     // Game loop
     while (1)
     {
-        // TODO use this for actual hardware
         // Update key arrays
-        // key_update(last_key, hold_key);
-
-        // key_update();
-        // if (is_key_down(KEY_CTRL_F2))
-        // {
-        //     setup_view();
-        //     print_xy(1, 2, "f2 pressed", TEXT_MODE_TRANSPARENT_BACKGROUND, TEXT_COLOR_BLUE);
-        //     update_view();
-        // }
-        // if (is_key_down(KEY_PRGM_MENU))
-        // {
-        //     int key;
-        //     // Let OS handle menu key
-        //     GetKey(&key);
-        // }
+        key_update(last_key, hold_key);
+        // Handle input
+        if (__builtin_expect(is_key_down(KEY_PRGM_EXIT, last_key, hold_key), false))
+        {
+            key = draw_msg_box(5, pause_keys, 3, "  Game Paused", STR_UNUSED, STR_UNUSED, "  Resume: [F1]", "  Quit: [F2]");
+            if (key == KEY_CTRL_F2)
+                return;
+        }
+        else if (__builtin_expect(is_key_down(KEY_PRGM_MENU, last_key, hold_key), false))
+        {
+            // Let os handle menu key
+            GetKey(&key);
+            return;
+        }
+        if (is_key_down(KEY_PRGM_LEFT, last_key, hold_key))
+            change_dir(&dir_left, &dir, snake, snake_size);
+        if (is_key_down(KEY_PRGM_RIGHT, last_key, hold_key))
+            change_dir(&dir_right, &dir, snake, snake_size);
+        if (is_key_down(KEY_PRGM_UP, last_key, hold_key))
+            change_dir(&dir_up, &dir, snake, snake_size);
+        if (is_key_down(KEY_PRGM_DOWN, last_key, hold_key))
+            change_dir(&dir_down, &dir, snake, snake_size);
         // Game loop - under non-blocking delay
         if (RTC_Elapsed_ms(last_ticks, delay_ms))
         {
-        game_loop_update:
             last_ticks = RTC_GetTicks();
+            // Progress snake
             move_snake(snake, &last_tail, &dir, snake_size);
             // Game over
             if (__builtin_expect(is_intersecting(snake, snake_size), false))
             {
-                draw_msg_box(5, "  Game Over", STR_UNUSED, STR_UNUSED, STR_UNUSED, "  Press: [EXIT]");
+                draw_msg_box(5, game_end_keys, 1, "  Game Over", STR_UNUSED, STR_UNUSED, STR_UNUSED, "  Press: [EXIT]");
                 return;
             }
             // Snake eats apple
@@ -159,38 +167,13 @@ void view_game(void)
                 // Win condition
                 if (__builtin_expect(snake_size == N_BLOCKS, false))
                 {
-                    draw_msg_box(5, "  You Win", STR_UNUSED, STR_UNUSED, STR_UNUSED, "  Press: [EXIT]");
+                    draw_msg_box(5, game_end_keys, 1, "  You Win", STR_UNUSED, STR_UNUSED, STR_UNUSED, "  Press: [EXIT]");
                     return;
                 }
                 // Didn't win, keep playing
                 grow_snake(snake, &apple, &last_tail, &snake_size);
             }
             draw_game(snake, &apple, snake_size);
-        }
-        // ! Temporary for work on emulator
-        int key = PRGM_GetKey();
-        switch (key)
-        {
-        case 47: // EXIT
-            key = draw_msg_box(5, "  Game Paused", STR_UNUSED, STR_UNUSED, "  Resume: [F1]", "  Quit: [F2]");
-            if (key == KEY_CTRL_F2)
-                return;
-            break;
-        case 38: // LEFT
-            CHANGE_DIR(&dir_left, &dir, snake, snake_size)
-            break;
-        case 37: // DOWN
-            CHANGE_DIR(&dir_down, &dir, snake, snake_size)
-            break;
-        case 28: // UP
-            CHANGE_DIR(&dir_up, &dir, snake, snake_size)
-            break;
-        case 27: // RIGHT
-            CHANGE_DIR(&dir_right, &dir, snake, snake_size)
-            break;
-        case 48:
-            GetKey(&key);
-            break;
         }
     }
 }
