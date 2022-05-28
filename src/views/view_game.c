@@ -26,13 +26,9 @@ bool is_intersecting(uiVec2 *snake, unsigned int snake_size)
 
 static inline void change_dir(const iVec2 *new_dir, iVec2 *dir, uiVec2 *snake, unsigned int snake_size)
 {
-    // Ignore when new dir same as current
-    if (__builtin_expect_with_probability(dir->x == new_dir->x && dir->y == new_dir->y, false, 0.75))
-        return;
     // Don't move back into body
     if (__builtin_expect_with_probability(
-            snake[0].x + new_dir->x == snake[snake_size - 1].x &&
-                snake[0].y + new_dir->y == snake[snake_size - 1].y,
+            snake[0].x + new_dir->x == snake[1].x && snake[0].y + new_dir->y == snake[1].y,
             false, 0.75))
         return;
     dir->x = new_dir->x;
