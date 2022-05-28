@@ -25,12 +25,11 @@ typedef struct Fkey
     int bitmap;
 } Fkey;
 
-static unsigned short *vram = NULL;
 void update_vram_addr(void);
 
-static inline unsigned short *pixel_at(int x, int y)
+static inline unsigned short *pixel_at(int x, int y, unsigned short *ptr)
 {
-    return vram + x + SCREEN_W * y;
+    return ptr + x + SCREEN_W * y;
 }
 
 void setup_view(void);
@@ -39,9 +38,10 @@ void update_view(void); // GetKey already calls this
 void draw_fkey_label(int fkey, int bitmap);
 void draw_fkey_labels(size_t size, const Fkey *fkeys);
 
+void update_status_area(void);
+
 int draw_msg_box(int n_lines, ...);
 
-void draw_point(int x, int y, color_t color);
 void draw_rect(int x1, int x2, int y1, int y2, color_t color);
 // Draw point in playfield to screen
 static inline void draw_block(uint8_t x, uint8_t y, color_t color)

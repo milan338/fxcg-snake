@@ -2,7 +2,10 @@
 #include <fxcg/keyboard.h>
 #include <stdarg.h>
 #include <string.h>
+#include "../views/view_opt.h"
 #include "draw.h"
+
+static unsigned short *vram = NULL;
 
 void update_vram_addr(void)
 {
@@ -21,6 +24,17 @@ void update_view(void)
 {
     // Put VRAM on screen
     Bdisp_PutDisp_DD();
+}
+
+void update_status_area(void)
+{
+    int len;
+    char speed_text[30] = "   Speed: ";
+    const char *speed_name = get_speed_name(&len);
+    memcpy(speed_text + 10, speed_name, len);
+    DefineStatusMessage(speed_text, 0, TEXT_COLOR_BLACK, 0);
+    DefineStatusAreaFlags(3, SAF_BATTERY | SAF_TEXT, 0, 0);
+    DisplayStatusArea();
 }
 
 void draw_fkey_label(int fkey, int bitmap)
@@ -54,20 +68,15 @@ int draw_msg_box(int n_lines, ...)
     return key;
 }
 
-void draw_point(int x, int y, color_t color)
-{
-    __builtin_prefetch(&vram, 0, 3);
-    *pixel_at(x, y) = color;
-}
-
 void draw_rect(int x1, int x2, int y1, int y2, color_t color)
 {
     __builtin_prefetch(&vram, 0, 3);
+    unsigned short *ptr = vram;
     for (int x = x1; x < x2; x++)
     {
         for (int y = y1; y < y2; y++)
         {
-            *pixel_at(x, y) = color;
+            *pixel_at(x, y, ptr) = color;
         }
     }
 }
