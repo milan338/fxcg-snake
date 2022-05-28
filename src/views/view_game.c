@@ -78,14 +78,14 @@ void move_snake(uiVec2 *snake, uiVec2 *last_tail, const iVec2 *dir, unsigned int
 void draw_game(const uiVec2 *snake, const uiVec2 *apple, unsigned int snake_size)
 {
     // Draw background
-    draw_rect(0, SCREEN_W, OFFSET_TOP, SCREEN_H, COLOR_BLACK);
+    draw_rect(0, SCREEN_W, OFFSET_TOP, SCREEN_H, BG_COLOR);
     // Draw snake body and head
     int i;
     for (i = snake_size - 1; i > 0; i--)
-        draw_block(snake[i].x, snake[i].y, COLOR_GREEN);
-    draw_block(snake[i].x, snake[i].y, COLOR_WHITE);
+        draw_block(snake[i].x, snake[i].y, SNAKE_BODY_COLOR);
+    draw_block(snake[i].x, snake[i].y, SNAKE_HEAD_COLOR);
     // Draw apple
-    draw_block(apple->x, apple->y, COLOR_RED);
+    draw_block(apple->x, apple->y, APPLE_COLOR);
     // Update status display
     DisplayStatusArea();
     // Push modified VRAM to screen
